@@ -1,6 +1,6 @@
 import torch
 from typing import List
-from metrics import intersection_over_union
+from ..metrics import intersection_over_union
 
 
 def non_max_suppression(boxes_models: List[torch.Tensor],
