@@ -139,7 +139,6 @@ class Yolo(nn.Module):
     def __create_fcs(split_size, n_bboxes, n_classes):
         s, b, c = split_size, n_bboxes, n_classes
         return nn.Sequential(
-            nn.Flatten(),
             nn.Linear(1024 * s * s, 496),
             nn.Dropout(),
             nn.LeakyReLU(0.1),

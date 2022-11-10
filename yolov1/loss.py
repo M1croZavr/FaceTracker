@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from ..metrics import intersection_over_union
+from metrics import intersection_over_union
 
 
 class YoloLoss(nn.Module):
@@ -56,8 +56,8 @@ class YoloLoss(nn.Module):
         )
         bbox_targets = exists_box * targets[..., 21:25]
         # Extract the square root of the width and height
-        bbox_predictions[..., 2:4] = torch.sqrt(torch.abs(bbox_predictions[..., 2:4]) + 1e-5) \
-            * torch.sign(bbox_predictions[..., 2:4])
+        bbox_predictions[..., 2:4] = torch.sqrt(torch.abs(bbox_predictions.clone()[..., 2:4]) + 1e-5) \
+            * torch.sign(bbox_predictions.clone()[..., 2:4])
         bbox_targets[..., 2:4] = torch.sqrt(torch.abs(bbox_targets[..., 2:4]) + 1e-5) \
             * torch.sign(bbox_targets[..., 2:4])
         # Flattening to bs * 7 * 7 x 4
@@ -98,4 +98,7 @@ if __name__ == "__main__":
     yolo_loss = YoloLoss()
     predictions_tens = torch.randn(10, 7, 7, 30, requires_grad=True)
     true_tens = torch.randn(10, 7, 7, 25)
-    print(yolo_loss(predictions_tens, true_tens))
+    with torch.autograd.set_detect_anomaly(True):
+        loss = yolo_loss(predictions_tens, true_tens)
+        loss.backward()
+        print(loss.item())
