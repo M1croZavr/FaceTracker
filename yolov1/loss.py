@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from ..metrics import intersection_over_union
+from metrics import intersection_over_union
 
 
 class YoloLoss(nn.Module):
@@ -17,9 +17,9 @@ class YoloLoss(nn.Module):
         Number of objects classes to detect
     lambda_coord: float
         Regularization coefficient for bounding box predictions
-    lambda_noobj: float
+    lambda_no_obj: float
         Regularization coefficient for no object in bounding box prediction
-    mse: nn.Moduel
+    mse: nn.Module
         Mean squared error module with 'sum' reduction
     """
     def __init__(self, s=7, b=2, c=20):
@@ -28,7 +28,7 @@ class YoloLoss(nn.Module):
         self.b = b
         self.c = c
         self.lambda_coord = 5
-        self.lambda_noobj = 0.5
+        self.lambda_no_obj = 0.5
         self.mse = nn.MSELoss(reduction="sum")
 
     def forward(self, predictions, targets):
@@ -41,7 +41,10 @@ class YoloLoss(nn.Module):
         )
         # iou_anchor shape: bs x 7 x 7 x 1
         # Concatenate along the new outer dim iou result of 2 anchors
-        anchors_iou = torch.concat((iou_anchor1.unsqueeze(dim=0), iou_anchor2.unsqueeze(dim=0)), dim=0)
+        anchors_iou = torch.concat(
+            (iou_anchor1.unsqueeze(dim=0), iou_anchor2.unsqueeze(dim=0)),
+            dim=0
+        )
         # Maximum between iou1 and iou2 elements (the outer dim) and corresponding indexes (0 or 1 anchor) in case of 2
         iou_maxes, best_box = torch.max(anchors_iou, dim=0)
         # Is there a bbox in a grid cell from true data (0 or 1)
@@ -49,7 +52,8 @@ class YoloLoss(nn.Module):
 
         # Bbox coordinates (x, y, w, h) loss component
         bbox_predictions = exists_box * (
-                (best_box * predictions[..., 26:30]) + ((1 - best_box) * predictions[..., 21:25]))
+                (best_box * predictions[..., 26:30]) + ((1 - best_box) * predictions[..., 21:25])
+        )
         bbox_targets = exists_box * targets[..., 21:25]
         # Extract the square root of the width and height
         bbox_predictions[..., 2:4] = torch.sqrt(torch.abs(bbox_predictions[..., 2:4]) + 1e-5) \
@@ -86,12 +90,12 @@ class YoloLoss(nn.Module):
         )
 
         # Total loss
-        loss = self.lambda_coord * bbox_loss + object_loss + self.lambda_noobj * no_object_loss + classes_loss
+        loss = self.lambda_coord * bbox_loss + object_loss + self.lambda_no_obj * no_object_loss + classes_loss
         return loss
 
 
 if __name__ == "__main__":
     yolo_loss = YoloLoss()
-    predictions_tens = torch.randn(10, 7, 7, 30)
+    predictions_tens = torch.randn(10, 7, 7, 30, requires_grad=True)
     true_tens = torch.randn(10, 7, 7, 25)
     print(yolo_loss(predictions_tens, true_tens))

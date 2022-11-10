@@ -11,7 +11,7 @@ def intersection_over_union(boxes_model: torch.Tensor,
         boxes_true (torch.Tensor): Box coordinates of true data. Shape of batch_size x 4.
         box_format (str): On which format bounding boxes are passed.
          Corner points or middle point with height and width. (x1, y1, x2, y2) in case of corners and
-         (x, y, width, height) in case of midpoint.
+         (x_center, y_center, width, height) in case of midpoint.
     Returns:
         iou (torch.Tensor): Intersection over union metric result for model boxes predictions for each example
         in batch.

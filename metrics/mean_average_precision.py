@@ -20,7 +20,7 @@ def mean_average_precision(
             [image_idx, class_prediction, probability_score, x1, y1, x2, y2]
         box_format (str): On which format bounding boxes are passed.
          Corner points or middle point with height and width. (x1, y1, x2, y2) in case of corners and
-         (x, y, width, height) in case of midpoint.
+         (x_center, y_center, width, height) in case of midpoint.
         iou_threshold (float): Intersection over union threshold
         num_classes (int): Number of unique classes for objects
     Returns:
@@ -35,12 +35,14 @@ def mean_average_precision(
         ground_truths = list(filter(lambda x: x[1] == c, boxes_true))
         # Dictionary of the image ID and the number of its bounding boxes in the dataset
         bboxes_amount = Counter(list(map(lambda x: x[0], ground_truths)))
-        # Converting number of bounding boxes from int to zeros tensor
+        # Converting number of bounding boxes from int to zeros tensor of this int len
         bboxes_amount = {k: torch.zeros(v) for k, v in bboxes_amount.items()}
 
-        # Sort detection by probability score, descending
+        # Sort detections inplace by probability score, descending
         detections.sort(key=lambda x: x[2], reverse=True)
+        # True positives one hot tensor
         tp = torch.zeros(len(detections))
+        # False positive one hot tensor
         fp = torch.zeros(len(detections))
         total_true_boxes = len(ground_truths)
 
