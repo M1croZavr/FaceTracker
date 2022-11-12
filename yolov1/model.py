@@ -139,10 +139,10 @@ class Yolo(nn.Module):
     def __create_fcs(split_size, n_bboxes, n_classes):
         s, b, c = split_size, n_bboxes, n_classes
         return nn.Sequential(
-            nn.Linear(1024 * s * s, 496),
+            nn.Linear(1024 * s * s, 4096),
             nn.Dropout(),
             nn.LeakyReLU(0.1),
-            nn.Linear(496, s * s * (c + b * 5))
+            nn.Linear(4096, s * s * (c + b * 5))
         )
 
 
@@ -150,3 +150,6 @@ if __name__ == "__main__":
     tens = torch.randn(10, 3, 448, 448)
     yolo = Yolo(split_size=7, n_bboxes=2, n_classes=20)
     assert list(yolo(tens).shape) == [10, 7 * 7 * 30]
+    tens2 = torch.randn(10, 3, 448, 448)
+    yolo2 = Yolo(split_size=7, n_bboxes=2, n_classes=1)
+    assert list(yolo2(tens2).shape) == [10, 7 * 7 * 11]
